@@ -1,0 +1,7 @@
+libgdal-dev
+libgeos-dev
+libjq-dev
+libprotobuf-dev
+libudunits2-dev
+libv8-dev
+protobuf-compiler

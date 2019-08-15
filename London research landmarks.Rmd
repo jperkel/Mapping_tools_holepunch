@@ -1,0 +1,62 @@
+---
+title: "London Research Landmarks"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+These examples were created for a Nature Toolbox article by Jeffrey Perkel, published 5 June 2018. [https://www.nature.com/articles/d41586-018-05331-6]
+
+The following maps are created using the Leaflet R plugin. The Leaflet library produces interactive maps that allow users to pan, zoom, and click on points of interest.
+
+I created and read in a table of latitude/longitude values in comma-separated values (CSV) format, using values extracted from Google Maps. Then I plot those points on a topographical map of London, and overlay a second data source from Macrostrat.org, which colors the map according to its geological features.
+
+```{r echo=TRUE}
+library (leaflet)
+
+#
+# In Google Maps, find a location, right click, select 'What's Here', and copy 
+# the lat/long values. These values can be stored in a .csv file. I've added them 
+# here to file for simplicity.
+#
+
+df <- read.csv(textConnection(
+"Name,Lat,Long
+Nature,51.533925,-0.121553
+Francis Crick Institute,51.531877,-0.128767
+University College London,51.524486,-0.133997
+MRC Laboratory for Molecular Cell Biology,51.524435,-0.132495
+King's College London,51.511573,-0.116083
+Imperial College London,51.498780,-0.174888
+Cambridge University,52.206960,0.115034
+Oxford University,51.754843,-1.254302
+Platform 9 3/4,51.532349,-0.123806
+"))
+
+# create a blank map
+m <- leaflet() 
+
+# mark points with blue circles, except Nature's offices in red...
+m <- addCircleMarkers(m, lat=df$Lat, lng=df$Long, label=df$Name, 
+               color = (ifelse (df$Name == "Nature", "red", "blue"))) 
+
+# add an underlying basemap
+m <- addProviderTiles(m, providers$OpenTopoMap) 
+
+# center the view on London
+m <- setView(m, -0.119,51.525, zoom = 8) 
+
+# pull in MacroStrat tiles
+m <- addTiles (m, 'https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', 
+               options = tileOptions(opacity = 0.6))
+
+# draw the map
+m
+```
+
+Collect session information.
+```{r}
+sessionInfo()
+```
+

@@ -1,0 +1,204 @@
+---
+title: "Hurricane tracking data"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+These examples were created for a Nature Toolbox article by Jeffrey Perkel, published 5 June 2018. [https://www.nature.com/articles/d41586-018-05331-6]
+
+These maps are created using the Leaflet R plugin. The Leaflet library produces interactive maps that allow users to pan, zoom, and click on points of interest.
+
+In this example, we will plot the US National Hurricane Center forecast track for Atlantic hurricane Irma using publicly available data (advisory #20, 0900 GMT on 04 September 2017), overlaid with potential coastal targets. Then we will overlay sea surface temperature data for the same date, using code provided by Luke Miller, San Jose State University.
+
+First, load required libraries.
+
+```{r load libraries, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#############################################################################################
+# Author: Jeffrey Perkel
+# OISST analysis code by Luke Miller, San Jose State University
+# ###########################################################################################
+
+# uncomment to install packages as necessary
+# install.packages('sf')
+# install.packages('leaflet')
+# install.packages('rgdal')
+# install.packages('raster')
+# install.packages('geojsonio')
+
+library (sf)
+library (leaflet)
+library (rgdal)
+library (raster)
+library (geojsonio)
+```
+Unzip the shape files...
+
+```{r}
+unzip("al112017_5day_020.zip", exdir="al112017_5day_020")
+```
+
+Next, read in data. These latitude and longitude data were obtained from Google Maps. The Irma data source is NHC: https://www.nhc.noaa.gov/gis/forecast/archive/al112017_5day_020.zip
+
+
+```{r load shape files, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# customize for your installation 
+# base_path <- "/Users/jeffreyperkel/Documents/Mapping_Data/"
+# irma_dir <- "al112017_5day_020/"
+
+df <- read.csv(textConnection(
+"Name,Lat,Long
+Barbuda,17.648,-61.779
+Sint Maarten,18.060,-63.049
+British Virgin Islands,18.349,-64.718
+Santo Domingo,18.483,-69.929
+San Juan,18.421,-66.059
+Havana,23.111,-82.357
+Key West,24.555, -81.779
+Miami Beach,25.790,-80.135
+New Orleans,29.999,-90.087
+Houston,29.782,-95.405
+"))
+
+# Import the advisory 'shape' files...
+# irmaPolygon <- readOGR(paste(base_path, irma_dir, "al112017-020_5day_pgn.shp", sep = ""))
+# irmaLine <- readOGR(paste(base_path, irma_dir, "al112017-020_5day_lin.shp", sep = ""))
+# irmaPoints <- readOGR(paste (base_path, irma_dir, "al112017-020_5day_pts.shp", sep = ""))
+irmaPolygon <- readOGR(dsn="al112017_5day_020", layer="al112017-020_5day_pgn")
+irmaLine <- readOGR(dsn="al112017_5day_020", layer="al112017-020_5day_lin")
+irmaPoints <- readOGR(dsn="al112017_5day_020", layer="al112017-020_5day_pts")
+
+```
+
+Plot the map using Leaflet. Color the coastal cities in blue, the hurricane in red, and give the polygon a black border. Add text to label the figure. And center it on Havana, Cuba.
+
+```{r draw the map, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# use the DATELBL field in the irmaPoints dataset to label the map
+labels <- as.data.frame(irmaPoints)$DATELBL
+
+# create a blank map
+m <- leaflet () 
+
+# add the basemap
+m <- addProviderTiles(m, providers$OpenTopoMap)  
+
+# draw the 'cone of uncertainty'
+m <- addPolygons(m, data = irmaPolygon, color = "black", weight = "2", fillColor="red", fillOpacity = 0.3) 
+
+# draw the predicted track
+m <- addPolylines(m, data = irmaLine) 
+
+# draw the predicted track positions
+m <- addCircleMarkers(m, data = irmaPoints, color = "red", radius = 2, label = labels,
+                      labelOptions = labelOptions(noHide = TRUE, textOnly = TRUE)) 
+
+# add the coastal locations
+m <- addCircleMarkers(m, lat=df$Lat,lng=df$Long,label=df$Name, radius = 2, 
+                      labelOptions = labelOptions(noHide = TRUE, textOnly = TRUE)) 
+
+# center the map on Havana, Cuba
+m <- setView(m, -82.357,23.111,zoom=4)
+
+# display the map
+m
+```
+
+
+Let's overlay SST data for the same day, 4 September 2017. This code comes from Luke Miller at San Jose State University in California and is based on his 2014 blog post: https://lukemiller.org/index.php/2014/11/extracting-noaa-sea-surface-temperatures-with-ncdf4/. It retrieves sea surface temperatures for a given latitude/longitude and date. 
+
+You'll need to download the R script NOAA_OISST_ncdf4.R from https://github.com/millerlp/Misc_R_scripts/blob/master/NOAA_OISST_ncdf4.R. Download the OISST data themselves and the file lsmask.oisst.v2.nc from https://www.esrl.noaa.gov/psd/data/gridded/data.noaa.oisst.v2.highres.html
+
+
+```{r massage & plot OISST data, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Basic OISST data load
+
+# customize for your computer
+source ("NOAA_OISST_ncdf4.R") 
+
+ssts = extractOISSTdaily("sst.day.mean.2017.nc", "lsmask.oisst.v2.nc", lonW=160, lonE=359, latS=-10, latN=60, date1='2017-09-04', date2='2017-09-05')
+
+s = brick(ssts, 
+          xmn = as.numeric(attr(ssts, 'dimnames')$Long[1]),
+          xmx = as.numeric(attr(ssts, 'dimnames')$Long[ncol(ssts)]),
+          ymn = as.numeric(attr(ssts, 'dimnames')$Lat[nrow(ssts)]),
+          ymx = as.numeric(attr(ssts, 'dimnames')$Lat[1]),
+          crs = '+proj=longlat +datum=WGS84')
+s = dropLayer(s, 2)
+
+# Necessary steps to get leaflet to plot western hemi data
+# See https://github.com/r-spatial/mapview/issues/6
+b = shift(s, -360)
+SST <- trim (crop(b, extent(-100,180,-90,90),snap='in'))
+
+m <- addRasterImage (m, SST, colors = "Set3") 
+m <- setView(m, -64.768, 32.295, zoom = 4)
+m
+```
+
+Note that the 'raster' package can also plot the OISST data directly, and provide a nice legend...
+
+```{r plot with raster}
+plot (SST)
+```
+
+You can also plot GeoJSON data with Leaflet. First, convert your shape files to GeoJSON using the ogr2ogr web client (https://ogre.adc4gis.com). For this to work, you must create a ZIP file containing all the elements of the Shape file.
+
+```{r use geojson files, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# import the GeoJSON files
+#irmaPolygon <- geojson_read(paste (base_path, irma_dir, "irma_pgn.json", sep = ""), what = "sp")
+#irmaLine <- geojson_read(paste (base_path, irma_dir, "irma_lin.json", sep = ""), what = "sp")
+#irmaPoints <- geojson_read(paste (base_path, irma_dir, "irma_pts.json", sep = ""), what = "sp")
+irmaPolygon <- geojson_read("irma_pgn.json", what = "sp")
+irmaLine <- geojson_read("irma_lin.json", what = "sp")
+irmaPoints <- geojson_read("irma_pts.json", what = "sp")
+
+#
+# NOTE: for some reason, geojson_read() mangles the DATELBL field, 
+# so I've used the VALIDTIME field instead.
+#
+labels <- as.data.frame(irmaPoints)$VALIDTIME
+
+m <- leaflet () 
+m <- addProviderTiles(m, providers$OpenTopoMap)  
+m <- addPolygons(m, data = irmaPolygon, color = "black", weight = "2", 
+                 fillColor="red", fillOpacity = 0.3) 
+m <- addPolylines(m, data = irmaLine) 
+m <- addCircleMarkers(m, data = irmaPoints, color = "red", radius = 2, 
+                 label = labels, labelOptions = labelOptions(noHide = TRUE, textOnly = TRUE)) 
+m <- addCircleMarkers(m, lat=df$Lat,lng=df$Long,label=df$Name, radius = 2, 
+                 labelOptions = labelOptions(noHide = TRUE, textOnly = TRUE)) 
+m <- setView(m, -82.357,23.111,zoom=4)
+
+m
+```
+
+
+**Update: 7 June 2018**
+
+Mikel Maron, who leads community outreach at Mapbox, pointed out to me after this article was published that Leaflet users can also pull in tiles from Mapbox. To test this, I mapped the  Irma dataset in Mapbox Studio (www.mapbox.com/studio), obtained a shareable URL, and produced the following code based on a previously published example (https://rpubs.com/walkerke/rstudio-mapbox). 
+
+
+```{r}
+mapbox_url <- "https://api.mapbox.com/styles/v1/jperkel/cji553ibu05dn2rl6uta39s1l/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoianBlcmtlbCIsImEiOiJjamVocHpxMzMwbmt6MzNxczF3cjVlcHNrIn0.VL2_izlLEMZ961Kiq1dacA#4.1/19.865084/-64.106529/0"
+
+map_attr <- "(c) <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a>"
+
+m <- leaflet ()
+m <- addTiles(m, urlTemplate = mapbox_url, attribution = map_attr)
+m <- setView(m, -82.357,23.111,zoom=4)
+
+m
+```
+
+
+
+Collect session information.
+
+```{r}
+sessionInfo()
+```
+

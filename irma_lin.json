@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"STORMNAME":"Irma","STORMTYPE":"HU","ADVDATE":"500 AM AST Mon Sep 04 2017","ADVISNUM":"20","STORMNUM":11,"FCSTPRD":120,"BASIN":"AL"},"geometry":{"type":"LineString","coordinates":[[-52.3,16.9],[-53.9,16.7],[-56.2,16.6],[-58.6,17],[-61.2,17.8],[-66.8,19.6],[-72,21],[-76.5,22]]}}]}
