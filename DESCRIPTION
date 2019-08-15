@@ -1,0 +1,21 @@
+Type: Compendium
+Package: Mapping_tools_holepunch
+Title: Mapping Tools Example with Holepunch
+Version: 0.0.1
+Authors@R: 
+    person(given = "Jeffrey",
+           family = "Perkel",
+           role = c("aut", "cre"),
+           email = "jeffrey.perkel@gmail.com",
+           comment = c(ORCID = "0000-0001-5699-1008"))
+Description: Mapping tools example with holepunch
+License: What license it uses
+Depends: 
+    geojsonio,
+    leaflet,
+    raster,
+    rgdal,
+    rmarkdown,
+    sf
+Encoding: UTF-8
+LazyData: true
