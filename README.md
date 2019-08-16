@@ -4,7 +4,7 @@
   [![Launch Rstudio Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jperkel/Mapping_tools_holepunch/master?urlpath=rstudio)
   <!-- badges: end -->
 
-This Binder-capable repo was built using [holepunch](https://github.com/karthik/holepunch), Karthik Ram's tool for creating Docker containers for R projects. Since `holepunch` doesn't execute the instructions contained in the `postBuild` file, you have to run them manually. After clicking 'Launch Binder' (it may take a while to start!), open the 'Terminal' window at the left of the RStudio interface. Type `./postBuild` to load the necessary data files. Then, open either of the two RMarkdown files, and select 'Run > Run All' to execute the code.
+This Binder-capable repo was built using [holepunch](https://github.com/karthik/holepunch), Karthik Ram's tool for creating Docker containers for R projects. Thanks to a tip from [Tim Head](https://twitter.com/betatim), I was able to update the Dockerfile to run the postBuild file during Docker creation. Once RStudio launches, open either of the two RMarkdown files, and select 'Run > Run All' to execute the code. ~~Since `holepunch` doesn't execute the instructions contained in the `postBuild` file, you have to run them manually. After clicking 'Launch Binder' (it may take a while to start!), open the 'Terminal' window at the left of the RStudio interface. Type `./postBuild` to load the necessary data files. Then, open either of the two RMarkdown files, and select 'Run > Run All' to execute the code.~~
 
 Simple examples of mapping in R, created for a Nature Toolbox article by Jeffrey Perkel, published 5 June 2018. [https://www.nature.com/articles/d41586-018-05331-6]
 
