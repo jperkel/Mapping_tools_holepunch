@@ -2,6 +2,7 @@
 
   <!-- badges: start -->
   [![Launch Rstudio Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jperkel/Mapping_tools_holepunch/master?urlpath=rstudio)
+  [![Open in Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4725205/tree/v1)
   <!-- badges: end -->
 
 Simple examples of mapping in R, created for a [Nature Toolbox](https://www.nature.com/articles/d41586-018-05331-6) article by Jeffrey Perkel, published 5 June 2018. Click the 'Launch Binder' button above to launch an interactive RStudio session in the cloud, in which you can explore and execute two RMarkdown notebooks. 
