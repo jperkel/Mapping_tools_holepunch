@@ -14,6 +14,8 @@ I created and read in a table of latitude/longitude values in comma-separated va
 
 ```{r echo=TRUE}
 library (leaflet)
+library (git2r)
+library (here)
 
 #
 # In Google Maps, find a location, right click, select 'What's Here', and copy 
@@ -57,6 +59,8 @@ m
 
 Collect session information.
 ```{r}
+# ht @benmarwick (https://twitter.com/benmarwick/status/1263291191606444033?s=20) for git2r trick...
+if ("git2r" %in% installed.packages() & git2r::in_repository(path = '.')) git2r::repository(here::here())
 sessionInfo()
 ```
 

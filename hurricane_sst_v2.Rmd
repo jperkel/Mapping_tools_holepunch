@@ -32,6 +32,8 @@ library (leaflet)
 library (rgdal)
 library (raster)
 library (geojsonio)
+library (git2r)
+library (here)
 ```
 Unzip the shape files...
 
@@ -199,6 +201,9 @@ m
 Collect session information.
 
 ```{r}
+# ht @benmarwick (https://twitter.com/benmarwick/status/1263291191606444033?s=20) for git2r trick...
+if ("git2r" %in% installed.packages() & git2r::in_repository(path = '.')) git2r::repository(here::here())
+
 sessionInfo()
 ```
 
